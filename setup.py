@@ -28,7 +28,7 @@ with open("doc/PyPI.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name = "stcgal",
+    name = "kouji-stcgal",
     version = stcgal.__version__,
     packages = find_packages(exclude=["doc", "tests"]),
     install_requires = ["pyserial>=3.0", "tqdm>=4.0.0"],
@@ -44,7 +44,7 @@ setup(
     long_description = long_description,
     long_description_content_type = "text/markdown",
     keywords = "stc mcu microcontroller 8051 mcs-51",
-    url = "https://github.com/grigorig/stcgal",
+    url = "https://github.com/KoujiKaeru/stcgal",
     author = "Grigori Goronzy",
     author_email = "greg@kinoho.net",
     license = "MIT License",

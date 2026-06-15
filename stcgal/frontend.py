@@ -24,6 +24,7 @@ import sys
 import argparse
 import stcgal
 import serial
+import serial.tools.list_ports
 from stcgal.utils import BaudType
 from stcgal.protocols import Stc89Protocol
 from stcgal.protocols import Stc89AProtocol
@@ -181,7 +182,19 @@ class StcGal:
         if self.opts.version:
             print("stcgal {}".format(stcgal.__version__))
             return 0
-
+        
+        # Autodetect port if not specified
+        valid_vidpid = [(0x0403, 0x6001), (0x1A86, 0x7523), (0x1A86, 0x55D4), (0x1A86, 0x5584), (0x1A86, 0x5512), 
+                        (0x1A86, 0x5523), (0x067B, 0x23A3), (0x10C4, 0xEA60)]
+        if self.protocol.port == '?':
+            ports = list(serial.tools.list_ports.comports())
+            for p in ports:
+                # Check if the connected device is one supported by STCGAL
+                if (p.vid, p.pid) in valid_vidpid:
+                    self.protocol.port = p.device
+                    break
+                raise ValueError('Port could not be autodetected!')
+        
         try:
             self.protocol.connect(autoreset=self.opts.autoreset, resetcmd=self.opts.resetcmd, resetpin=self.opts.resetpin)
             if isinstance(self.protocol, StcAutoProtocol):
@@ -267,7 +280,7 @@ def cli():
     parser.add_argument("-r", "--resetcmd",  help="shell command for board power-cycling (instead of DTR assertion)", action="store")
     parser.add_argument("-P", "--protocol", help="protocol version (default: auto)",
                         choices=["stc89", "stc89a", "stc12a", "stc12b", "stc12", "stc15a", "stc15", "stc8", "stc8d", "stc8g", "usb15", "auto"], default="auto")
-    parser.add_argument("-p", "--port", help="serial port device", default="/dev/ttyUSB0")
+    parser.add_argument("-p", "--port", help="serial port device", default="?")
     parser.add_argument("-b", "--baud", help="transfer baud rate (default: 115200)", type=BaudType(), default=115200)
     parser.add_argument("-l", "--handshake", help="handshake baud rate (default: 2400)", type=BaudType(), default=2400)
     parser.add_argument("-o", "--option", help="set option (can be used multiple times, see documentation)", action="append")
